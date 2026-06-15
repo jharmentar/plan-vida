@@ -487,15 +487,17 @@ function closeModalDirect() {
   document.getElementById('new-name').value = '';
 }
 
-// Color picker and day picker — use event delegation on document so modal doesn't need to exist yet
+// Color picker and day picker — use closest() so tapping child elements (dot, span) still works
 document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('color-opt')) {
+  const colorOpt = e.target.closest('.color-opt');
+  if (colorOpt) {
     document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('selected'));
-    e.target.classList.add('selected');
-    selectedType = e.target.dataset.type;
+    colorOpt.classList.add('selected');
+    selectedType = colorOpt.dataset.type;
   }
-  if (e.target.classList.contains('day-opt')) {
-    e.target.classList.toggle('selected');
+  const dayOpt = e.target.closest('.day-opt');
+  if (dayOpt) {
+    dayOpt.classList.toggle('selected');
   }
 });
 
