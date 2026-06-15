@@ -351,7 +351,7 @@ var SHIFTS = {
 // Cycle: Noche(0) -> Tarde(1) -> Mañana(2), repeating every 3 quincenas
 // Anchor: Jan 1-15 2026 = Noche (index 0)
 var CYCLE = ['night', 'mid', 'morning'];
-var ANCHOR_Y = 2026, ANCHOR_M = 1;  // Feb 2026 anchor
+var ANCHOR_Y = 2026, ANCHOR_M = 0;  // JS: getMonth() 0-indexed, Jan 2026 q0=night
 
 function calcShift(dateObj) {
   var y = dateObj.getFullYear();
