@@ -101,9 +101,12 @@
   .field-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
   .field input[type="text"], .field input[type="time"] { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); width: 100%; outline: none; }
   .field input:focus { border-color: var(--purple); }
-  .color-picker { display: flex; gap: 10px; flex-wrap: wrap; }
-  .color-opt { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.15s; }
-  .color-opt.selected { border-color: var(--text); }
+  .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+  .color-opt { display: flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 12px; border-radius: 20px; border: 2px solid transparent; transition: all 0.15s; background: var(--bg); }
+  .color-opt.selected { border-color: var(--text); background: var(--surface); }
+  .color-opt .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .color-opt span { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+  .color-opt.selected span { color: var(--text); }
   .day-picker { display: flex; gap: 6px; flex-wrap: wrap; }
   .day-opt { padding: 6px 10px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; }
   .day-opt.selected { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
@@ -572,12 +575,12 @@ function deleteCustom(di, actId) {
       <div class="field">
         <label class="field-label">Color</label>
         <div class="color-picker" id="color-picker">
-          <div class="color-opt selected" data-type="study" style="background:#1D9E75" title="Estudio"></div>
-          <div class="color-opt" data-type="job" style="background:#378ADD" title="Empleo"></div>
-          <div class="color-opt" data-type="exercise" style="background:#D85A30" title="Ejercicio"></div>
-          <div class="color-opt" data-type="social" style="background:#D4537E" title="Social"></div>
-          <div class="color-opt" data-type="work" style="background:#534AB7" title="Trabajo"></div>
-          <div class="color-opt" data-type="sleep" style="background:#D3D1C7" title="Otro"></div>
+          <div class="color-opt selected" data-type="study"><div class="dot" style="background:#1D9E75"></div><span>Estudio</span></div>
+          <div class="color-opt" data-type="job"><div class="dot" style="background:#378ADD"></div><span>Empleo</span></div>
+          <div class="color-opt" data-type="exercise"><div class="dot" style="background:#D85A30"></div><span>Ejercicio</span></div>
+          <div class="color-opt" data-type="social"><div class="dot" style="background:#D4537E"></div><span>Social</span></div>
+          <div class="color-opt" data-type="work"><div class="dot" style="background:#534AB7"></div><span>Trabajo</span></div>
+          <div class="color-opt" data-type="sleep"><div class="dot" style="background:#D3D1C7"></div><span>Otro</span></div>
         </div>
       </div>
       <div class="field">
