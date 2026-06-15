@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plan Vida">
+<meta name="theme-color" content="#534AB7">
+<title>Plan de Vida — Josue</title>
+<style>
+  :root {
+    --purple: #534AB7; --purple-light: #EEEDFE; --purple-dark: #3C3489;
+    --teal: #1D9E75; --teal-light: #E1F5EE;
+    --blue: #378ADD; --blue-light: #E6F1FB;
+    --coral: #D85A30; --coral-light: #FAECE7;
+    --pink: #D4537E; --pink-light: #FBEAF0;
+    --gray: #D3D1C7; --gray-dark: #444441;
+    --amber: #EF9F27; --amber-dark: #412402;
+    --bg: #F8F7F5; --surface: #FFFFFF; --border: rgba(0,0,0,0.1);
+    --text: #1a1a1a; --text-secondary: #6b6b6b;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
+
+  /* Top bar */
+  .topbar { background: var(--purple); color: #fff; padding: 14px 16px 12px; padding-top: calc(14px + env(safe-area-inset-top)); position: sticky; top: 0; z-index: 100; }
+  .topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .topbar p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+
+  /* Shift tabs */
+  .tabs { display: flex; gap: 6px; padding: 12px 16px 8px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .tab.active { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+
+  /* Progress */
+  .progress-section { padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-lbl { font-size: 12px; color: var(--text-secondary); }
+  .progress-pct { font-size: 13px; font-weight: 600; color: var(--text); }
+  .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width 0.35s ease, background 0.35s; }
+
+  /* Day tabs */
+  .day-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 8px; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab { flex-shrink: 0; padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .day-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .day-tab.rest { color: var(--purple-dark); }
+
+  /* Block list */
+  .block-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .block-item { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: var(--radius); padding: 12px 14px; border: 1px solid var(--border); transition: opacity 0.2s; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  .block-item.passive { cursor: default; }
+  .block-item.done { opacity: 0.45; }
+  .block-item.done .check-circle { background: var(--teal); border-color: var(--teal); }
+  .block-item.done .check-circle svg { display: block; }
+
+  .color-bar { width: 4px; height: 40px; border-radius: 2px; flex-shrink: 0; }
+  .block-info { flex: 1; min-width: 0; }
+  .block-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .block-time { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  .check-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .check-circle svg { display: none; width: 13px; height: 13px; }
+
+  /* Reset */
+  .reset-wrap { padding: 4px 16px 20px; }
+  .reset-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+  .reset-btn:active { background: var(--bg); }
+
+  /* Tip */
+  .tip { margin: 0 16px 8px; background: var(--purple-light); border-radius: var(--radius-sm); border-left: 3px solid var(--purple); padding: 10px 12px; font-size: 12px; color: var(--purple-dark); line-height: 1.5; }
+
+  /* Install banner */
+  .install-banner { margin: 12px 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .install-banner.hidden { display: none; }
+  .install-icon { font-size: 22px; flex-shrink: 0; }
+  .install-text { flex: 1; }
+  .install-text strong { font-size: 13px; font-weight: 600; display: block; margin-bottom: 2px; }
+  .install-text p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+  .install-close { font-size: 18px; color: var(--text-secondary); cursor: pointer; padding: 0 0 0 8px; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom)); right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--purple); color: #fff; font-size: 28px; line-height: 1; border: none; cursor: pointer; z-index: 200; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(83,74,183,0.4); transition: transform 0.15s; }
+  .fab:active { transform: scale(0.93); }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; display: flex; align-items: flex-end; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; padding-bottom: calc(16px + env(safe-area-inset-bottom)); max-height: 90vh; overflow-y: auto; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close { font-size: 18px; color: var(--text-secondary); background: none; border: none; cursor: pointer; padding: 0; }
+  .modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .field input[type="text"], .field input[type="time"] { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); width: 100%; outline: none; }
+  .field input:focus { border-color: var(--purple); }
+  .color-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+  .color-opt { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.15s; }
+  .color-opt.selected { border-color: var(--text); }
+  .day-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+  .day-opt { padding: 6px 10px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; }
+  .day-opt.selected { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+  .modal-footer { display: flex; gap: 10px; padding: 12px 20px 0; }
+  .btn-cancel { flex: 1; padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+  .btn-save { flex: 2; padding: 12px; border-radius: var(--radius); border: none; background: var(--purple); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-save:active { opacity: 0.85; }
+  .block-item.custom .delete-btn { display: flex; }
+  .delete-btn { display: none; width: 28px; height: 28px; border-radius: 50%; background: #FCEBEB; border: none; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; color: #A32D2D; }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Plan de Vida</h1>
+  <p id="topbar-sub">Quincena A · Mañana</p>
+</div>
+
+<div id="install-banner" class="install-banner">
+  <div class="install-icon">📲</div>
+  <div class="install-text">
+    <strong>Instalar en tu pantalla de inicio</strong>
+    <p>Toca <strong>Compartir</strong> → <strong>Agregar a pantalla de inicio</strong> para acceder como app.</p>
+  </div>
+  <div class="install-close" onclick="dismissBanner()">✕</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-morning" onclick="setShift('morning')">A · Mañana</button>
+  <button class="tab" id="tab-mid" onclick="setShift('mid')">B · Tarde</button>
+  <button class="tab" id="tab-night" onclick="setShift('night')">C · Noche</button>
+</div>
+
+<div class="progress-section">
+  <div class="progress-top">
+    <span class="progress-lbl" id="prog-lbl">0 de 0 actividades</span>
+    <span class="progress-pct" id="prog-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="day-tabs" id="day-tabs"></div>
+
+<div id="tip" class="tip"></div>
+<div class="block-list" id="block-list"></div>
+
+<div class="reset-wrap">
+  <button class="reset-btn" onclick="resetWeek()">Reiniciar semana</button>
+</div>
+
+<script>
+const COLORS = {
+  work:     '#534AB7', study: '#1D9E75', job: '#378ADD',
+  exercise: '#D85A30', social: '#D4537E', sleep: '#D3D1C7', prep: '#EF9F27'
+};
+const DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const IS_REST = [false,false,false,true,false,false,false];
+
+function hm(h,m){ return `${(h%24).toString().padStart(2,'0')}:${(m||0).toString().padStart(2,'0')}`; }
+
+const normalMorning = [
+  {type:'sleep',sh:0,sm:0,eh:5,em:20,label:'Sueño'},
+  {type:'prep',sh:5,sm:20,eh:6,em:0,label:'Preparación'},
+  {type:'work',sh:6,sm:0,eh:12,em:40,label:'Trabajo'},
+  {type:'prep',sh:12,sm:40,eh:13,em:10,label:'Llegada'},
+  {type:'exercise',sh:13,sm:10,eh:14,em:30,label:'Gym'},
+  {type:'study',sh:14,sm:30,eh:16,em:0,label:'Estudio DE'},
+  {type:'social',sh:16,sm:30,eh:19,em:30,label:'Social / familia'},
+  {type:'sleep',sh:22,sm:0,eh:29,em:20,label:'Sueño'},
+];
+const extraMorning = [
+  {type:'sleep',sh:0,sm:0,eh:5,em:20,label:'Sueño'},
+  {type:'prep',sh:5,sm:20,eh:6,em:0,label:'Preparación'},
+  {type:'work',sh:6,sm:0,eh:15,em:40,label:'Trabajo (extra)'},
+  {type:'prep',sh:15,sm:40,eh:16,em:10,label:'Llegada'},
+  {type:'job',sh:16,sm:10,eh:17,em:0,label:'LinkedIn'},
+  {type:'sleep',sh:22,sm:30,eh:29,em:20,label:'Sueño'},
+];
+const normalNight = [
+  {type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},
+  {type:'exercise',sh:10,sm:0,eh:11,em:30,label:'Gym'},
+  {type:'prep',sh:11,sm:30,eh:12,em:0,label:'Ducha / arreglo'},
+  {type:'study',sh:12,sm:0,eh:14,em:0,label:'Estudio DE'},
+  {type:'job',sh:14,sm:0,eh:15,em:0,label:'Empleo / CV'},
+  {type:'social',sh:15,sm:30,eh:18,em:0,label:'Social / familia'},
+  {type:'prep',sh:18,sm:20,eh:19,em:0,label:'Preparación'},
+  {type:'work',sh:19,sm:0,eh:25,em:15,label:'Trabajo'},
+];
+const extraNight = [
+  {type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},
+  {type:'study',sh:10,sm:0,eh:11,em:30,label:'Estudio DE'},
+  {type:'exercise',sh:11,sm:30,eh:13,em:0,label:'Gym'},
+  {type:'prep',sh:13,sm:0,eh:13,em:30,label:'Ducha / arreglo'},
+  {type:'job',sh:13,sm:30,eh:14,em:30,label:'LinkedIn'},
+  {type:'prep',sh:15,sm:0,eh:15,em:40,label:'Preparación'},
+  {type:'work',sh:15,sm:40,eh:25,em:15,label:'Trabajo (extra)'},
+];
+const normalMid = [
+  {type:'sleep',sh:0,sm:0,eh:8,em:0,label:'Sueño'},
+  {type:'exercise',sh:8,sm:0,eh:9,em:30,label:'Gym'},
+  {type:'prep',sh:9,sm:30,eh:10,em:0,label:'Ducha / arreglo'},
+  {type:'study',sh:10,sm:0,eh:11,em:40,label:'Estudio DE'},
+  {type:'prep',sh:11,sm:40,eh:12,em:20,label:'Preparación salida'},
+  {type:'work',sh:12,sm:20,eh:19,em:0,label:'Trabajo'},
+  {type:'prep',sh:19,sm:0,eh:19,em:45,label:'Llegada'},
+  {type:'social',sh:19,sm:45,eh:22,em:0,label:'Social / familia'},
+  {type:'sleep',sh:23,sm:0,eh:27,em:40,label:'Sueño'},
+];
+
+const SHIFTS = {
+  morning: {
+    label: 'Quincena A · Mañana (06:00–12:40)',
+    tip: 'Mié y Vie: turno extra 06:00–15:40. El jueves es tu día ancla: estudio largo + empleo + familia.',
+    schedule: [
+      normalMorning,
+      [{type:'sleep',sh:0,sm:0,eh:5,em:20,label:'Sueño'},{type:'prep',sh:5,sm:20,eh:6,em:0,label:'Preparación'},{type:'work',sh:6,sm:0,eh:12,em:40,label:'Trabajo'},{type:'prep',sh:12,sm:40,eh:13,em:10,label:'Llegada'},{type:'study',sh:13,sm:10,eh:14,em:40,label:'Estudio DE'},{type:'job',sh:14,sm:40,eh:15,em:40,label:'Empleo'},{type:'social',sh:16,sm:0,eh:19,em:0,label:'Social'},{type:'sleep',sh:22,sm:0,eh:29,em:20,label:'Sueño'}],
+      extraMorning,
+      [{type:'sleep',sh:0,sm:0,eh:8,em:0,label:'Sueño'},{type:'exercise',sh:8,sm:0,eh:9,em:30,label:'Gym'},{type:'prep',sh:9,sm:30,eh:10,em:0,label:'Ducha / arreglo'},{type:'study',sh:10,sm:0,eh:13,em:0,label:'Estudio DE'},{type:'job',sh:13,sm:0,eh:15,em:0,label:'Empleo / CV'},{type:'social',sh:16,sm:0,eh:21,em:0,label:'Social / familia'},{type:'sleep',sh:22,sm:30,eh:29,em:20,label:'Sueño'}],
+      extraMorning,
+      normalMorning,
+      [{type:'sleep',sh:0,sm:0,eh:5,em:20,label:'Sueño'},{type:'prep',sh:5,sm:20,eh:6,em:0,label:'Preparación'},{type:'work',sh:6,sm:0,eh:12,em:40,label:'Trabajo'},{type:'prep',sh:12,sm:40,eh:13,em:10,label:'Llegada'},{type:'study',sh:13,sm:10,eh:14,em:30,label:'Estudio DE'},{type:'social',sh:15,sm:0,eh:18,em:0,label:'Social / familia'},{type:'sleep',sh:22,sm:0,eh:29,em:20,label:'Sueño'}],
+    ]
+  },
+  night: {
+    label: 'Quincena C · Noche (19:00–01:15)',
+    tip: 'Mié y Vie: turno extra 15:40–01:15. Duermes hasta ≈10:00. Tus mañanas son tu ventana productiva.',
+    schedule: [
+      normalNight,
+      [{type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},{type:'study',sh:10,sm:0,eh:12,em:30,label:'Estudio DE'},{type:'job',sh:12,sm:30,eh:13,em:30,label:'Empleo'},{type:'social',sh:14,sm:0,eh:17,em:30,label:'Social / familia'},{type:'prep',sh:18,sm:20,eh:19,em:0,label:'Preparación'},{type:'work',sh:19,sm:0,eh:25,em:15,label:'Trabajo'}],
+      extraNight,
+      [{type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},{type:'exercise',sh:10,sm:0,eh:11,em:30,label:'Gym'},{type:'prep',sh:11,sm:30,eh:12,em:0,label:'Ducha / arreglo'},{type:'study',sh:12,sm:0,eh:14,em:30,label:'Estudio DE'},{type:'job',sh:14,sm:30,eh:16,em:0,label:'Empleo / CV'},{type:'social',sh:16,sm:30,eh:21,em:0,label:'Social / familia'},{type:'sleep',sh:22,sm:0,eh:26,em:0,label:'Sueño'}],
+      extraNight,
+      normalNight,
+      [{type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},{type:'study',sh:10,sm:0,eh:12,em:0,label:'Estudio DE'},{type:'job',sh:12,sm:0,eh:13,em:0,label:'Empleo'},{type:'social',sh:13,sm:30,eh:17,em:0,label:'Social / familia'},{type:'prep',sh:18,sm:20,eh:19,em:0,label:'Preparación'},{type:'work',sh:19,sm:0,eh:25,em:15,label:'Trabajo'}],
+    ]
+  },
+  mid: {
+    label: 'Quincena B · Tarde (12:20–19:00)',
+    tip: 'Mié extra: 15:40–01:15. Vie extra: 06:00–15:40. Mañanas libres para gym y estudio.',
+    schedule: [
+      normalMid,
+      [{type:'sleep',sh:0,sm:0,eh:8,em:0,label:'Sueño'},{type:'study',sh:8,sm:0,eh:10,em:30,label:'Estudio DE'},{type:'job',sh:10,sm:30,eh:11,em:40,label:'Empleo / CV'},{type:'prep',sh:11,sm:40,eh:12,em:20,label:'Preparación salida'},{type:'work',sh:12,sm:20,eh:19,em:0,label:'Trabajo'},{type:'prep',sh:19,sm:0,eh:19,em:45,label:'Llegada'},{type:'social',sh:19,sm:45,eh:22,em:0,label:'Social'},{type:'sleep',sh:23,sm:0,eh:27,em:40,label:'Sueño'}],
+      [{type:'sleep',sh:0,sm:0,eh:8,em:0,label:'Sueño'},{type:'study',sh:8,sm:0,eh:10,em:0,label:'Estudio DE'},{type:'exercise',sh:10,sm:0,eh:11,em:30,label:'Gym'},{type:'prep',sh:11,sm:30,eh:12,em:0,label:'Ducha / arreglo'},{type:'job',sh:12,sm:0,eh:13,em:0,label:'LinkedIn'},{type:'prep',sh:15,sm:0,eh:15,em:40,label:'Preparación salida'},{type:'work',sh:15,sm:40,eh:25,em:15,label:'Trabajo (extra)'}],
+      [{type:'sleep',sh:2,sm:0,eh:10,em:0,label:'Sueño'},{type:'exercise',sh:10,sm:0,eh:11,em:30,label:'Gym'},{type:'prep',sh:11,sm:30,eh:12,em:0,label:'Ducha / arreglo'},{type:'study',sh:12,sm:0,eh:14,em:30,label:'Estudio DE'},{type:'job',sh:14,sm:30,eh:16,em:0,label:'Empleo / CV'},{type:'social',sh:16,sm:30,eh:21,em:0,label:'Social / familia'},{type:'sleep',sh:22,sm:30,eh:27,em:40,label:'Sueño'}],
+      [{type:'sleep',sh:0,sm:0,eh:5,em:20,label:'Sueño'},{type:'prep',sh:5,sm:20,eh:6,em:0,label:'Preparación'},{type:'work',sh:6,sm:0,eh:15,em:40,label:'Trabajo (extra)'},{type:'prep',sh:15,sm:40,eh:16,em:10,label:'Llegada'},{type:'study',sh:16,sm:10,eh:17,em:30,label:'Estudio DE'},{type:'social',sh:18,sm:0,eh:20,em:30,label:'Social / familia'},{type:'sleep',sh:22,sm:0,eh:29,em:20,label:'Sueño'}],
+      normalMid,
+      [{type:'sleep',sh:0,sm:0,eh:8,em:0,label:'Sueño'},{type:'exercise',sh:8,sm:0,eh:9,em:30,label:'Gym'},{type:'prep',sh:9,sm:30,eh:10,em:0,label:'Ducha / arreglo'},{type:'study',sh:10,sm:0,eh:11,em:40,label:'Estudio DE'},{type:'prep',sh:11,sm:40,eh:12,em:20,label:'Preparación salida'},{type:'work',sh:12,sm:20,eh:19,em:0,label:'Trabajo'},{type:'prep',sh:19,sm:0,eh:19,em:45,label:'Llegada'},{type:'social',sh:19,sm:45,eh:22,em:0,label:'Social / familia'},{type:'sleep',sh:23,sm:0,eh:27,em:40,label:'Sueño'}],
+    ]
+  }
+};
+
+let curShift = 'morning';
+let curDay = 0;
+let checked = {};
+let customActivities = {};
+
+function storageKey(shift) { return `plan_vida_v1_${shift}`; }
+
+function loadChecked(shift) {
+  try { return JSON.parse(localStorage.getItem(storageKey(shift)) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveChecked() {
+  try { localStorage.setItem(storageKey(curShift), JSON.stringify(checked)); }
+  catch(e) {}
+}
+
+function blockId(di, bi) { return `${di}_${bi}`; }
+
+function toggleBlock(di, bi) {
+  const id = blockId(di, bi);
+  checked[id] = !checked[id];
+  saveChecked();
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) el.classList.toggle('done', !!checked[id]);
+  updateProgress();
+}
+
+function updateProgress() {
+  const data = SHIFTS[curShift];
+  let total = 0, done = 0;
+  data.schedule.forEach((day, di) => {
+    day.forEach((b, bi) => {
+      if (b.type === 'sleep' || b.type === 'prep') return;
+      total++;
+      if (checked[blockId(di, bi)]) done++;
+    });
+  });
+  // Count custom activities
+  Object.entries(customActivities).forEach(([di, acts]) => {
+    acts.forEach(a => {
+      total++;
+      if (checked[`custom_${di}_${a.id}`]) done++;
+    });
+  });
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-lbl').textContent = `${done} de ${total} actividades completadas`;
+  const fill = document.getElementById('prog-fill');
+  fill.style.background = pct === 100 ? '#534AB7' : pct >= 60 ? '#1D9E75' : '#378ADD';
+}
+
+function renderDayTabs() {
+  const el = document.getElementById('day-tabs');
+  el.innerHTML = '';
+  DAYS.forEach((d, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'day-tab' + (IS_REST[i] ? ' rest' : '') + (i === curDay ? ' active' : '');
+    btn.textContent = IS_REST[i] ? d + ' 🛌' : d;
+    btn.onclick = () => { curDay = i; renderDayTabs(); renderBlocks(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderBlocks() {
+  const list = document.getElementById('block-list');
+  list.innerHTML = '';
+
+  // Base blocks
+  const blocks = SHIFTS[curShift].schedule[curDay];
+  blocks.forEach((b, bi) => {
+    const isPassive = b.type === 'sleep' || b.type === 'prep';
+    const id = blockId(curDay, bi);
+    const isDone = !!checked[id];
+    const cross = b.eh >= 24;
+    const timeStr = `${hm(b.sh, b.sm)} – ${hm(b.eh, b.em)}${cross ? ' (+1)' : ''}`;
+
+    const item = document.createElement('div');
+    item.className = 'block-item' + (isPassive ? ' passive' : '') + (isDone ? ' done' : '');
+    item.dataset.id = id;
+    if (!isPassive) item.onclick = () => toggleBlock(curDay, bi);
+
+    const bar = document.createElement('div');
+    bar.className = 'color-bar';
+    bar.style.background = COLORS[b.type];
+
+    const info = document.createElement('div');
+    info.className = 'block-info';
+    info.innerHTML = `<div class="block-name">${b.label}</div><div class="block-time">${timeStr}</div>`;
+
+    item.appendChild(bar);
+    item.appendChild(info);
+
+    if (!isPassive) {
+      const circle = document.createElement('div');
+      circle.className = 'check-circle';
+      circle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+      item.appendChild(circle);
+    }
+
+    list.appendChild(item);
+  });
+
+  // Custom activities for this day
+  const customs = customActivities[curDay] || [];
+  if (customs.length > 0) {
+    const sep = document.createElement('div');
+    sep.style.cssText = 'font-size:11px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;padding:4px 0 2px;';
+    sep.textContent = 'Actividades personalizadas';
+    list.appendChild(sep);
+  }
+  customs.forEach(a => {
+    const cid = `custom_${curDay}_${a.id}`;
+    const isDone = !!checked[cid];
+    const cross = a.eh >= 24;
+    const timeStr = `${hm(a.sh, a.sm)} – ${hm(a.eh, a.em)}${cross ? ' (+1)' : ''}`;
+
+    const item = document.createElement('div');
+    item.className = 'block-item custom' + (isDone ? ' done' : '');
+    item.dataset.id = cid;
+
+    const bar = document.createElement('div');
+    bar.className = 'color-bar';
+    bar.style.background = COLORS[a.type];
+
+    const info = document.createElement('div');
+    info.className = 'block-info';
+    info.innerHTML = `<div class="block-name">${a.label}</div><div class="block-time">${timeStr}</div>`;
+
+    const circle = document.createElement('div');
+    circle.className = 'check-circle';
+    circle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '✕';
+    delBtn.onclick = (e) => { e.stopPropagation(); deleteCustom(curDay, a.id); };
+
+    // Toggle check on item click (but not delete btn)
+    item.onclick = () => {
+      checked[cid] = !checked[cid];
+      saveChecked();
+      item.classList.toggle('done', !!checked[cid]);
+      updateProgress();
+    };
+
+    item.appendChild(bar);
+    item.appendChild(info);
+    item.appendChild(circle);
+    item.appendChild(delBtn);
+    list.appendChild(item);
+  });
+}
+
+function renderTip() {
+  document.getElementById('tip').textContent = SHIFTS[curShift].tip;
+}
+
+function setShift(s) {
+  curShift = s;
+  curDay = 0;
+  checked = loadChecked(s);
+  customActivities = loadCustom(s);
+  ['morning','night','mid'].forEach(k => document.getElementById('tab-'+k).classList.toggle('active', k===s));
+  document.getElementById('topbar-sub').textContent = SHIFTS[s].label;
+  renderDayTabs();
+  renderBlocks();
+  renderTip();
+  updateProgress();
+}
+
+function resetWeek() {
+  if (!confirm('¿Reiniciar el progreso de esta quincena?')) return;
+  checked = {};
+  saveChecked();
+  document.querySelectorAll('.block-item.done').forEach(el => el.classList.remove('done'));
+  updateProgress();
+}
+
+function dismissBanner() {
+  document.getElementById('install-banner').classList.add('hidden');
+  localStorage.setItem('banner_dismissed', '1');
+}
+
+// Hide banner if already dismissed or already installed
+if (localStorage.getItem('banner_dismissed') || window.navigator.standalone) {
+  document.getElementById('install-banner').classList.add('hidden');
+}
+
+setShift('morning');
+
+// Custom activities stored per shift+day
+function customKey(shift) { return `custom_v1_${shift}`; }
+function loadCustom(shift) {
+  try { return JSON.parse(localStorage.getItem(customKey(shift)) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveCustom(shift, data) {
+  try { localStorage.setItem(customKey(shift), JSON.stringify(data)); }
+  catch(e) {}
+}
+
+let selectedType = 'study';
+
+function openModal() {
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  document.getElementById('new-name').focus();
+  // Set current day as default
+  document.querySelectorAll('.day-opt').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.day) === curDay);
+  });
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  document.getElementById('new-name').value = '';
+}
+
+// Color picker
+document.querySelectorAll('.color-opt').forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedType = el.dataset.type;
+  };
+});
+
+// Day picker (multi-select)
+document.querySelectorAll('.day-opt').forEach(el => {
+  el.onclick = () => el.classList.toggle('selected');
+});
+
+function parseTime(str) {
+  const [h, m] = str.split(':').map(Number);
+  return { h, m };
+}
+
+function saveActivity() {
+  const name = document.getElementById('new-name').value.trim();
+  const startStr = document.getElementById('new-start').value;
+  const endStr = document.getElementById('new-end').value;
+  const selectedDays = [...document.querySelectorAll('.day-opt.selected')].map(el => parseInt(el.dataset.day));
+
+  if (!name) { document.getElementById('new-name').focus(); return; }
+  if (!startStr || !endStr) return;
+  if (selectedDays.length === 0) { alert('Selecciona al menos un día'); return; }
+
+  const start = parseTime(startStr);
+  const end = parseTime(endStr);
+
+  // Handle end time next day if end <= start
+  let eh = end.h;
+  if (end.h < start.h || (end.h === start.h && end.m <= start.m)) eh = end.h + 24;
+
+  const id = `custom_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+  const activity = { id, label: name, sh: start.h, sm: start.m, eh, em: end.m, type: selectedType };
+
+  selectedDays.forEach(di => {
+    if (!customActivities[di]) customActivities[di] = [];
+    customActivities[di].push({...activity});
+  });
+
+  saveCustom(curShift, customActivities);
+  closeModalDirect();
+
+  // Re-render current day if it was selected
+  if (selectedDays.includes(curDay)) renderBlocks();
+  updateProgress();
+}
+
+function deleteCustom(di, actId) {
+  if (!customActivities[di]) return;
+  customActivities[di] = customActivities[di].filter(a => a.id !== actId);
+  saveCustom(curShift, customActivities);
+  renderBlocks();
+  updateProgress();
+}
+
+</script>
+
+<!-- FAB add button -->
+<button class="fab" id="fab" onclick="openModal()" aria-label="Agregar actividad">+</button>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nueva actividad</span>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Nombre</label>
+        <input type="text" id="new-name" placeholder="Ej: Lectura técnica" maxlength="40">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Inicio</label>
+          <input type="time" id="new-start" value="08:00">
+        </div>
+        <div class="field">
+          <label class="field-label">Fin</label>
+          <input type="time" id="new-end" value="09:00">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Color</label>
+        <div class="color-picker" id="color-picker">
+          <div class="color-opt selected" data-type="study" style="background:#1D9E75" title="Estudio"></div>
+          <div class="color-opt" data-type="job" style="background:#378ADD" title="Empleo"></div>
+          <div class="color-opt" data-type="exercise" style="background:#D85A30" title="Ejercicio"></div>
+          <div class="color-opt" data-type="social" style="background:#D4537E" title="Social"></div>
+          <div class="color-opt" data-type="work" style="background:#534AB7" title="Trabajo"></div>
+          <div class="color-opt" data-type="sleep" style="background:#D3D1C7" title="Otro"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Días</label>
+        <div class="day-picker" id="day-picker">
+          <div class="day-opt selected" data-day="0">Lun</div>
+          <div class="day-opt" data-day="1">Mar</div>
+          <div class="day-opt" data-day="2">Mié</div>
+          <div class="day-opt" data-day="3">Jue</div>
+          <div class="day-opt" data-day="4">Vie</div>
+          <div class="day-opt" data-day="5">Sáb</div>
+          <div class="day-opt" data-day="6">Dom</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModalDirect()">Cancelar</button>
+      <button class="btn-save" onclick="saveActivity()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
