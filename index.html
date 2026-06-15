@@ -462,11 +462,19 @@ let selectedType = 'study';
 
 function openModal() {
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('new-name').focus();
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-start').value = '08:00';
+  document.getElementById('new-end').value = '09:00';
+  // Reset color to first option
+  selectedType = 'study';
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.type === 'study');
+  });
   // Set current day as default
   document.querySelectorAll('.day-opt').forEach(el => {
     el.classList.toggle('selected', parseInt(el.dataset.day) === curDay);
   });
+  setTimeout(() => document.getElementById('new-name').focus(), 100);
 }
 function closeModal(e) {
   if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
@@ -476,18 +484,16 @@ function closeModalDirect() {
   document.getElementById('new-name').value = '';
 }
 
-// Color picker
-document.querySelectorAll('.color-opt').forEach(el => {
-  el.onclick = () => {
-    document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedType = el.dataset.type;
-  };
-});
-
-// Day picker (multi-select)
-document.querySelectorAll('.day-opt').forEach(el => {
-  el.onclick = () => el.classList.toggle('selected');
+// Color picker and day picker — use event delegation on document so modal doesn't need to exist yet
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('color-opt')) {
+    document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('selected'));
+    e.target.classList.add('selected');
+    selectedType = e.target.dataset.type;
+  }
+  if (e.target.classList.contains('day-opt')) {
+    e.target.classList.toggle('selected');
+  }
 });
 
 function parseTime(str) {
